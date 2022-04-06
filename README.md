@@ -11,7 +11,7 @@ We want to predict the price of bitcoin using historical bitcoin data as well as
 ## Datasets
 - [bitcoin data (2014 - 2021)]( https://www.kaggle.com/varpit94/bitcoin-data-updated-till-26jun2021 )
 
-- [bitcoint historical data (2012 - 2021)] (https://www.kaggle.com/datasets/mczielinski/bitcoin-historical-data)
+- [bitcoint historical data (2012 - 2021)]( https://www.kaggle.com/datasets/mczielinski/bitcoin-historical-data)
 
-- [fear and greed Index](https://alternative.me/crypto/fear-and-greed-index/)
+- [fear and greed Index]( https://alternative.me/crypto/fear-and-greed-index/)
 
