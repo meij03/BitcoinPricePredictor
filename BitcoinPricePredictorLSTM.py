@@ -112,3 +112,85 @@ model.add(Dense(1))
 
 # Compile the model
 model.compile(optimizer='adam', loss='mse')
+
+# Training the model
+# epochs = 50
+epochs = 3
+batch_size = 16
+early_stop = EarlyStopping(monitor='loss', patience=5, verbose=1)
+history = model.fit(x_train, y_train,
+                    batch_size=batch_size,
+                    epochs=epochs,
+                    validation_data=(x_test, y_test),
+                   callbacks=[early_stop])
+
+# Plot training & validation loss values
+#fig, ax = plt.subplots(figsize=(20, 10), sharex=True)
+#plt.plot(history.history["loss"])
+#plt.title("Model loss")
+#plt.ylabel("Loss")
+#plt.xlabel("Epoch")
+#ax.xaxis.set_major_locator(plt.MaxNLocator(epochs))
+#plt.legend(["Train", "Test"], loc="upper left")
+#plt.grid()
+#plt.show()
+
+# Get the predicted values
+y_pred_scaled = model.predict(x_test)
+
+# Unscale the predicted values
+y_pred = scaler_pred.inverse_transform(y_pred_scaled)
+y_test_unscaled = scaler_pred.inverse_transform(y_test.reshape(-1, 1))
+
+# Mean Absolute Error (MAE)
+MAE = mean_absolute_error(y_test_unscaled, y_pred)
+print(f'Median Absolute Error (MAE): {np.round(MAE, 2)}')
+
+# Mean Absolute Percentage Error (MAPE)
+MAPE = np.mean((np.abs(np.subtract(y_test_unscaled, y_pred)/ y_test_unscaled))) * 100
+print(f'Mean Absolute Percentage Error (MAPE): {np.round(MAPE, 2)} %')
+
+# Median Absolute Percentage Error (MDAPE)
+MDAPE = np.median((np.abs(np.subtract(y_test_unscaled, y_pred)/ y_test_unscaled)) ) * 100
+print(f'Median Absolute Percentage Error (MDAPE): {np.round(MDAPE, 2)} %')
+
+# # Add the date column
+# print(data_filtered)
+data_filtered_sub = data_filtered.copy()
+data_filtered_sub['Date'] = date_index
+
+# # Add the difference between the valid and predicted prices
+train = data_filtered_sub[:train_data_len + 1]
+valid = data_filtered_sub[train_data_len:]
+valid.insert(1, "Prediction", y_pred.ravel(), True)
+print(valid)
+print(valid["price_in_usd"])
+valid.insert(1, "Difference", valid["Prediction"] - valid["price_in_usd"], True)
+
+# # Zoom in to a closer timeframe
+# valid = valid[valid['Date'] > display_start_date]
+# train = train[train['Date'] > display_start_date]
+
+# Visualize the data
+fig, ax1 = plt.subplots(figsize=(22, 10), sharex=True)
+xt = train['Date']; yt = train[["price_in_usd"]]
+xv = valid['Date']; yv = valid[["price_in_usd", "Prediction"]]
+plt.title("Predictions vs Actual Values", fontsize=20)
+plt.ylabel("price in usd", fontsize=18)
+plt.plot(xt, yt, color="#039dfc", linewidth=2.0)
+plt.plot(xv, yv["Prediction"], color="#E91D9E", linewidth=2.0)
+plt.plot(xv, yv["price_in_usd"], color="black", linewidth=2.0)
+plt.legend(["Train", "Test Predictions", "Actual Values"], loc="upper left")
+plt.show()
+
+# # Create the bar plot with the differences
+x = valid['Date']
+y = valid["Difference"]
+
+# Create custom color range for positive and negative differences
+valid.loc[y >= 0, 'diff_color'] = "#2BC97A"
+valid.loc[y < 0, 'diff_color'] = "#C92B2B"
+
+plt.bar(x, y, width=0.8, color=valid['diff_color'])
+plt.grid()
+plt.show()
