@@ -13,41 +13,57 @@ from sklearn.preprocessing import RobustScaler, MinMaxScaler # This Scaler remov
 import seaborn as sns
 
 
-# df = pd.read_excel("cake_results_edit_sent_analysis.xlsx")
 df = pd.read_csv("merge_bitcoin_n_fear.csv")
+# df = pd.read_csv("bitstampUSD_1-min_data_2012-01-01_to_2021-03-31.csv")
+
+def label_fng_classification(row):
+   if row['fng_classification'] == 'Extreme Fear':
+      return 0
+   elif row['fng_classification'] == 'Fear':
+      return 1
+   elif row['fng_classification'] == 'Neutral':
+      return 2
+   elif row['fng_classification'] == 'Greed':
+      return 3
+   elif row['fng_classification'] == 'Extreme Greed':
+      return 4
+   
+df['fng_class'] = df.apply(lambda row: label_fng_classification(row), axis=1)
+
+
 
 # Indexing Batches
-# 02-01-2018
-# df['Date'] = pd.to_datetime(df.Date, format = '%Y-%m-%d %H:%M:%S')
-df['Date'] = pd.to_datetime(df.Date, format = '%m-%d-%Y')
+#minut to minute df
+# df = df.dropna()
+# print(df.size) #(3613769, 7)
+# df = df[len(df)//2:]
+# print(df.size) #(1806885, 7)
+# df.set_index('Timestamp', inplace=True)
+# train_df = df
 
-# df['Date'] = pd.to_datetime(df.Date)
-
-# print(df['Date'])
+#org csv
 df = df.dropna()
+df['Date'] = pd.to_datetime(df.Date, format = '%m-%d-%Y')
 train_df = df.sort_values(by=['Date']).copy()
 date_index = train_df.index
 train_df = train_df.reset_index(drop=True).copy()
-# print(train_df.head(5))
-# print(train_df.tail(5))
+
 
 # List of considered Features
-# FEATURES = ['Open','High','Low','Close','Volume_(BTC)','Volume_(Currency)','Weighted_Price','fng_value','fng_classification']
-FEATURES = ['Open','High','Low','Close','Volume_(BTC)','Volume_(Currency)','Weighted_Price','fng_value']
+# FEATURES = ['Open','High','Low','Close','Volume_(BTC)','Volume_(Currency)','Weighted_Price']
+FEATURES = ['Open','High','Low','Close','Volume_(BTC)','Volume_(Currency)','Weighted_Price','fng_value','fng_class']
+# FEATURES = ['Open','High','Low','Close','Volume_(BTC)','Volume_(Currency)','Weighted_Price','fng_value']
 
 
 # Create the dataset with features and filter the data to the list of FEATURES
 data = pd.DataFrame(train_df)
 data_filtered = data[FEATURES]
-
+print(data_filtered)
 
 
 # We add a prediction column and set dummy values to prepare the data for scaling
 data_filtered_ext = data_filtered.copy()
 data_filtered_ext['Prediction'] = data_filtered_ext['Weighted_Price']
-
-# Print the tail of the dataframe
-# print(data_filtered_ext.tail())
 
 # Get the number of rows in the data
 nrows = data_filtered.shape[0]
@@ -70,7 +86,9 @@ np_Close_scaled = scaler_pred.fit_transform(df_Close)
 sequence_length = 50
 
 # Prediction Index
-index_Close = data.columns.get_loc("Weighted_Price")
+# index_Close = data.columns.get_loc("Weighted_Price")
+index_Close = data_filtered.columns.get_loc("Weighted_Price")
+print(index_Close)
 
 # Split the training data into train and train data sets
 # As a first step, we get the number of rows to train the model on 80% of the data
@@ -104,32 +122,42 @@ print(x_test.shape, y_test.shape)
 
 # Validate that the prediction value and the input match up
 # The last close price of the second input sample should equal the first prediction value
-print(x_train[1][sequence_length-1][index_Close])
-print(y_train[0])
+# print(x_train[1][sequence_length-1][index_Close])
+# print(y_train[0])
 
 # Configure the neural network model
 model = Sequential()
 
 # Model with n_neurons = inputshape Timestamps, each with x_train.shape[2] variables
 n_neurons = x_train.shape[1] * x_train.shape[2]
-print(n_neurons, x_train.shape[1], x_train.shape[2])
+# print(n_neurons, x_train.shape[1], x_train.shape[2])
 model.add(LSTM(n_neurons, return_sequences=True, input_shape=(x_train.shape[1], x_train.shape[2])))
+model.add(LSTM(n_neurons, return_sequences=True))
+model.add(LSTM(n_neurons, return_sequences=True))
+model.add(LSTM(n_neurons, return_sequences=True))
+model.add(LSTM(n_neurons, return_sequences=True))
+model.add(LSTM(n_neurons, return_sequences=True))
+
+# model.add(LSTM(n_neurons, return_sequences=True))
+# model.add(LSTM(n_neurons, return_sequences=True))
+# model.add(LSTM(n_neurons, return_sequences=True))
 model.add(LSTM(n_neurons, return_sequences=False))
 model.add(Dense(5))
 model.add(Dense(1))
-#hidden layer or bidirectional LSTM
+
 
 # Compile the model
 model.compile(optimizer='adam', loss='mse')
 
 # Training the model
-# epochs = 50
 epochs = 50
 batch_size = 16
 early_stop = EarlyStopping(monitor='loss', patience=5, verbose=1)
 history = model.fit(x_train, y_train,
                     batch_size=batch_size,
                     epochs=epochs,
+                  #   validation_data=(x_test, y_test)
+                  # )
                     validation_data=(x_test, y_test),
                    callbacks=[early_stop])
 
@@ -238,9 +266,3 @@ plt.show()
 # print(f'The predicted close price is {predicted_price} ({plus if change_percent > 0 else minus}{change_percent}%)')
 
 # Tutorial: https://www.relataly.com/stock-market-prediction-using-multivariate-time-series-in-python/1815/#h-implementing-a-multivariate-time-series-prediction-model-in-python
-
-
-#TO DO NEXT TIME
-#one hot encode above value
-#experiment w layers
-#experiment vs the other dataset 
