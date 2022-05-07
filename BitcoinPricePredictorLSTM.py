@@ -13,8 +13,8 @@ from sklearn.preprocessing import RobustScaler, MinMaxScaler # This Scaler remov
 import seaborn as sns
 
 
-df = pd.read_csv("merge_bitcoin_n_fear.csv")
-# df = pd.read_csv("bitstampUSD_1-min_data_2012-01-01_to_2021-03-31.csv")
+df = pd.read_csv("data/merge_bitcoin_n_fear.csv")
+# df = pd.read_csv("data/bitstampUSD_1-min_data_2012-01-01_to_2021-03-31.csv")
 
 def label_fng_classification(row):
    if row['fng_classification'] == 'Extreme Fear':

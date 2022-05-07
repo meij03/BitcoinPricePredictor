@@ -2,6 +2,10 @@
 
 The datasets used in this project is called ["Bitcoin Historical Data"](https://www.kaggle.com/datasets/mczielinski/bitcoin-historical-data) sourced from Kaggle. Which has a total of 4 million entries spaning from 2012 to 2021 and 7 features that is OHLC (Open, High, Low, Close), volume in BTC, and weighted bitcoin price. 
 
+Note: **You will need to install the file from the kaggle separately!** The file is too massive to store on github.
+
+---
+
 Another dataset we used is ["Fear and Greed Index"](https://alternative.me/crypto/fear-and-greed-index/) from Alternative that measures sentiment anaylsis for bitcoin. The index tracks how much these individual indicators deviate from past averages and diverges and calculates a score from 0 to 100 with 100 representing maximum greediness and 0 signaling maximum fear. The dataset has 1151 rows and 3 features.
 
 ## Within this folder we have 2 datasets.
